@@ -1,0 +1,51 @@
+#login_container {
+	clear:both;
+	width: 200px;
+	margin: 0 auto;
+	background: #BBB;
+	text-align:center;
+}
+
+#form_container {
+	clear: both;
+	width: 130px;
+	padding: 0 10;
+	margin: 0 auto;
+}
+
+.text_input:focus {
+	outline: 0;
+}
+
+.text_input {
+	text-align:center;
+	color: #000;
+	border: 0;
+	width: 130px;
+	height: 32px;
+	background: #EEE;
+	margin:1;
+}
+
+#login {
+	margin: 1 15;
+	text-align:center;
+	border: 0;
+	width: 110px;
+	height: 30px;
+	background: #FFF;
+	cursor:pointer;
+}
+
+#login:hover {opacity:0.9;}
+
+#login:active {
+	background: #BB0000;
+}
+
+.login-text {
+	text-align:center;
+	color:#000000;
+	font-family: 'Lobster', cursive;
+	margin:0;
+}
