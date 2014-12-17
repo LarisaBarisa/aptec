@@ -44,7 +44,8 @@
 											FROM recipe 
 											WHERE recipe.status="new"
 											AND pharmacy_id='.$_SESSION['userpharmacy'].' LIMIT 0,20') or die(mysql_error());
-				$i=0;							
+				$i=0;
+				$chemOK[0]=true;
 				echo '<form method="post" action="accept_recipe.php">';
 				echo 'Всего новых рецептов: '.mysql_num_rows($getnewrecipe).'<br>';
 				while($result=mysql_fetch_array($getnewrecipe))
@@ -77,8 +78,8 @@
 						}
 					}
 					
-					echo '<input type="submit" name="take['.$result['idRecipe'].']" id="take['.$result['idRecipe'].']" value="Принять"/>
-						<input type="submit" name="ready['.$result['idRecipe'].']" id="ready['.$result['idRecipe'].']" value="Выполнено"/></br>';
+					echo '<input type="submit" name="take['.$result['idRecipe'].']" id="take['.$result['idRecipe'].']" value="Принять"/>';
+//						<input type="submit" name="ready['.$result['idRecipe'].']" id="ready['.$result['idRecipe'].']" value="Выполнено"/></br>';
 					$i++;
 				}
 				
@@ -101,29 +102,7 @@
 					die;
 				}
 				
-				if (isset($_POST['ready']))
-				{	
-					$readyrecipe=key($_POST['ready']);
-					echo $readyrecipe;
-					mysql_query('UPDATE recipe SET status="ready" WHERE idRecipe='.$readyrecipe) or die(mysql_error());
-					
-					$changereserve=mysql_query('SELECT * FROM chemicals, drugs_has_chemicals, pharmacy_has_chemicals, recipe_has_drugs
-														WHERE recipe_has_drugs.drugs_drugs_id=drugs_has_chemicals.drugs_id
-														AND drugs_has_chemicals.chemicals_id=chemicals.chemicals_id
-														AND pharmacy_has_chemicals.chemicals_chemicals_id=chemicals.chemicals_id
-														AND pharmacy_pharmacy_id='.$_SESSION['userpharmacy'].
-														' AND recipe_idRecipe='.$readyrecipe) or die(mysql_error());
-					echo $readyrecipe;
-					while($newreserve=mysql_fetch_array($changereserve))
-					{
-						//echo $newreserve['pharmacy_id'];
-						echo ($newreserve['reserve']*1000000-$newreserve['amount']*10*$newreserve['packs_number'])/1000000;
-						mysql_query('UPDATE pharmacy_has_chemicals SET reserve='.($newreserve['reserve']*1000000-$newreserve['amount']*10*$newreserve['packs_number'])/(1000000).' WHERE chemicals_chemicals_id='.$newreserve['chemicals_chemicals_id'].' AND pharmacy_pharmacy_id='.$_SESSION['userpharmacy']) or die(mysql_error());		
-					}
-					echo '<script language="javascript">
-							document.location="accept_recipe.php";
-							</script>';
-				}
+				
 				
 				echo '</form>';
 			?>
