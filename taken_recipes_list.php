@@ -1,0 +1,91 @@
+<?php
+	include_once('connect.php');
+	session_start();
+	if($_SESSION['userstatus']!="pharmacist")
+	{
+		echo 'У вас нет доступа к данной странице.  <a href=index.php>На главную</a>';
+		die;
+	}
+	
+?>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+<link rel="stylesheet" href="index.css" type="text/css"/>
+<title>Принятые рецепты</title>
+</head>
+ <body>
+	<div id="wrapper">
+		<div id="header">
+			Взятые заказы
+		</div>
+		<div id="menu">
+			<ul>
+				<li><a href="index.php">На главную</a></li>
+				<li><a href="recipe_request.php">Заказать препарат</a></li>
+				<?if($_SESSION['userstatus']=='pharmacist')
+				{	
+					echo'<li><a href="taken_recipes_list.php">Взятые заказы</a></li>';
+					echo'<li><a href="recipe_to_patient.php">Выдать заказ</a></li>';
+					echo'<li><a href="accept_recipe.php">Новые заказы</a></li>';
+				}?>
+			</ul>
+		</div>
+		<div style="float:right; width:485px;">
+			<?
+				mysql_query("SET NAMES 'cp1251'");
+				mysql_query("SET CHARACTER SET 'cp1251'");
+				if($_SESSION['userstatus']=="patient")
+				{
+					echo 'У вас нет доступа к данной странице';
+					die;
+				}
+				
+				$query=mysql_query('SELECT * FROM recipe') or die(mysql_error());
+				
+				$getnewrecipe=mysql_query('SELECT *
+											FROM recipe 
+											WHERE recipe.status="taken"
+											AND pharmacist_id='.$_SESSION['userid'].
+											' AND pharmacy_id='.$_SESSION['userpharmacy']) or die(mysql_error());
+				$i=0;							
+				echo '<form method="post" action="accept_recipe.php">';
+				echo 'Вы взялись за следующие заказы (всего '.mysql_num_rows($getnewrecipe).'):<br>';
+				while($result=mysql_fetch_array($getnewrecipe))
+				{
+					echo "<b><br>Заказ №".$result['idRecipe']." поступил ".$result['date'].":</b><br>";
+					$getrecipedrugs=mysql_query('SELECT drugs_name, drugs_id FROM recipe_has_drugs, drugs
+												WHERE recipe_idRecipe='.$result['idRecipe'].'
+												AND recipe_has_drugs.drugs_drugs_id=drugs.drugs_id') or die(mysql_error());
+												
+					while($resultdrugs=mysql_fetch_array($getrecipedrugs))
+					{
+						$getdrugscemicals=mysql_query('SELECT * FROM chemicals, drugs_has_chemicals, pharmacy_has_chemicals, recipe_has_drugs
+														WHERE drugs_has_chemicals.drugs_id='.$resultdrugs['drugs_id'].'
+														AND recipe_has_drugs.drugs_drugs_id=drugs_has_chemicals.drugs_id
+														AND drugs_has_chemicals.chemicals_id=chemicals.chemicals_id
+														AND pharmacy_has_chemicals.chemicals_chemicals_id=chemicals.chemicals_id
+														AND recipe_idRecipe='.$result['idRecipe'].
+														' AND pharmacy_pharmacy_id='.$_SESSION['userpharmacy']) or die(mysql_error());
+						echo $resultdrugs['drugs_name'].':<br>';
+						while($resultchem=mysql_fetch_array($getdrugscemicals))
+						{
+							if($resultchem['amount']*10*$resultchem['packs_number']>$resultchem['reserve']*1000000)
+							{
+								echo '<b style="color:#FF0000;"> — '.$resultchem['title'].' - '.$resultchem['amount'].'мг. ('.$resultchem['packs_number'].' уп)  !НЕДОСТАТОЧНО ХИМИКАТОВ!  Доступно:'.$resultchem['reserve'].'кг</b><br>';
+							}
+							else
+							{	
+								echo ' — '.$resultchem['title'].' - '.$resultchem['amount'].'-'.'мг. ('.$resultchem['packs_number'].' уп) Доступно:'.$resultchem['reserve'].'кг<br>';
+							}
+						}
+					}
+					
+					echo '<input type="submit" name="ready['.$result['idRecipe'].']" id="ready['.$result['idRecipe'].']" value="Выполнено"/></br>';
+					$i++;
+				}
+			?>
+		</div>
+	</div>
+ </body>
+</html>
